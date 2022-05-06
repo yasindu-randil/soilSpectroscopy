@@ -20,6 +20,7 @@ import scipy.signal
 import itertools
 from itertools import chain
 import math
+from math import sqrt;
 from sklearn.metrics import mean_squared_error, r2_score
 from PIL import Image 
 import PIL 
@@ -62,8 +63,8 @@ for i in range(len(OC)):
     flatten_list.append(list(chain.from_iterable(data_list[i])))
     imgLog = log_specgram
     imgLog = np.flipud(imgLog)
-    plt.imshow(imgLog)
-    plt.savefig("/home/yasindu/Desktop/Datasets/soilimages/soil"+str(val)+".png")
+    #plt.imshow(imgLog)
+    #plt.savefig("/home/yasindu/Desktop/Datasets/soilimages/soil"+str(val)+".png")
     val = val +1
 
 
@@ -95,7 +96,8 @@ SVM_regression.fit(X_train, y_train)
 y_hat = SVM_regression.predict(X_test)
 
 predictions = pd.DataFrame({ 'y_test':y_test,'y_hat':y_hat})
-score_c = r2_score(y_test, y_hat) score_cv = r2_score(y_test, y_hat) # Calculate mean squared error for calibration and cross validation mse_c = mean_squared_error(y, y_c) mse_cv = mean_squared_error(y, y_cv) RMSE_c = math.sqrt(mse_c) RMSE_cv = math.sqrt(mse_cv) rpd_c = y.std()/np.sqrt(mse_c) rpd_cv = y.std()/np.sqrt(mse_cv) 
+score_c = r2_score(y_test, y_hat) 
+score_cv = r2_score(y_test, y_hat) # Calculate mean squared error for calibration and cross validation mse_c = mean_squared_error(y, y_c) mse_cv = mean_squared_error(y, y_cv) RMSE_c = math.sqrt(mse_c) RMSE_cv = math.sqrt(mse_cv) rpd_c = y.std()/np.sqrt(mse_c) rpd_cv = y.std()/np.sqrt(mse_cv) 
 print(score_c)
 
 #%%
