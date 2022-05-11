@@ -26,13 +26,20 @@ sns.set()  #if you want to use seaborn themes with matplotlib functions
 # # Create DataFrame
 
 
-filepaths = pd.Series(list(glob.iglob('/home/yasindu/Desktop/Datasets/soilimages/*.png' )), name='Filepath').astype(str)
-df = pd.read_excel('/home/yasindu/Desktop/Soil_Spec/library_KS.xlsx')
-
+filepaths = pd.Series(list(glob.iglob('/home/yasindu/Desktop/Datasets/soilimages2/*.png' )), name='Filepath').astype(str)
+df = pd.read_csv('/home/yasindu/Desktop/Datasets/VNIR_spec.csv', low_memory=False)
+df = df.drop(df.iloc[:, 0:34],axis = 1)
+df = df.drop(df.iloc[:, 1:8],axis = 1)
+df = df.drop(df.index[4500:])
+dataCols =  df['EOC']
 thresh = 2
-df2= df[df['OC']<thresh]
-OC = pd.Series(df2['OC'].tolist(), name= 'OC')
+#df2= df[df['EOC']<thresh]
+
+       
+OC = pd.Series(df['EOC'].tolist(), name= 'OC')
 images = pd.concat([filepaths, OC], axis=1)
+images = images.dropna()
+images= images[images['OC']<thresh]
 
 
 #%%
@@ -106,12 +113,18 @@ x = tf.keras.layers.Conv2D(filters=32, kernel_size=(3, 3), activation='relu')(x)
 #Downsample again
 x = tf.keras.layers.MaxPool2D()(x) #(38x28)
 
-#Get the final 32 features
+# Second Convolutional layer to extract 32 features from the downsampled image
+x = tf.keras.layers.Conv2D(filters=64, kernel_size=(3, 3), activation='relu')(x)
+
+#Downsample again
+x = tf.keras.layers.MaxPool2D()(x) 
+
+#Get the final 64 features
 x = tf.keras.layers.GlobalAveragePooling2D()(x)
 
 #@ Hidden layer neural network
-x = tf.keras.layers.Dense(64, activation='relu')(x)
-x = tf.keras.layers.Dense(64, activation='relu')(x)
+x = tf.keras.layers.Dense(128, activation='relu')(x)
+x = tf.keras.layers.Dense(128, activation='relu')(x)
 outputs = tf.keras.layers.Dense(1, activation='linear')(x)
 
 model = tf.keras.Model(inputs=inputs, outputs=outputs)
