@@ -19,10 +19,15 @@ from tensorflow.keras import models, layers
 from sklearn.metrics import r2_score
 
 import glob
+from tensorflow.keras.optimizers import SGD
+
+
+from keras.callbacks import LearningRateScheduler
 
 import seaborn as sns
 import matplotlib.pyplot as plt
 sns.set()  #if you want to use seaborn themes with matplotlib functions
+
 #%% Create DataFrame
 
 
@@ -46,7 +51,7 @@ images= images[images['OC']<thresh]
 #%%
 #print(images)
 
-
+np.random.seed(42)
 # # Split the Dataset
 
 
@@ -102,9 +107,10 @@ test_images = test_generator.flow_from_dataframe(
 
 
 #%% Training
+import math
 inputs = tf.keras.Input(shape=(32, 32, 3))
 # Extract 16 features
-x = tf.keras.layers.Conv2D(filters=16, kernel_size=(3, 3), activation='relu')(inputs)
+x = tf.keras.layers.Conv2D(filters=32, kernel_size=(3, 3), activation='relu')(inputs)
 
 
 
@@ -112,23 +118,35 @@ x = tf.keras.layers.MaxPool2D()(x)
 #After that inpout was down sampled to 79,59
 
 # Second Convolutional layer to extract 32 features from the downsampled image
-x = tf.keras.layers.Conv2D(filters=32, kernel_size=(3, 3), activation='relu')(x)
+x = tf.keras.layers.Conv2D(filters=64, kernel_size=(3, 3), activation='relu')(x)
 
 #Downsample again
 x = tf.keras.layers.MaxPool2D()(x) #(38x28)
 
 
 #Get the final 64 features
-test = tf.keras.layers.GlobalAveragePooling2D()(x)
+x = tf.keras.layers.GlobalAveragePooling2D()(x)
 
 #@ Hidden layer neural network
-x = tf.keras.layers.Dense(64, activation='relu')(test)
+x = tf.keras.layers.Dense(64, activation='relu')(x)
 x = tf.keras.layers.Dense(64, activation='relu')(x)
 
 outputs = tf.keras.layers.Dense(1, activation='linear')(x)
 
+epochs=150
+learning_rate = 0.0001
+decay_rate = learning_rate / epochs
+momentum = 0.8
+
 model = tf.keras.Model(inputs=inputs, outputs=outputs)
 
+
+
+#Default values for SGD. lr=0.1, m=0, decay=0
+#Nesterov momentum is a different version of the momentum method.
+#Nesterov has stronger theoretical converge guarantees for convex functions.
+#sgd = SGD(lr=learning_rate, momentum=momentum, decay=decay_rate, nesterov=False)
+optimizer = tf.keras.optimizers.SGD(lr=0.0001, momentum=0.0, decay=0.0, nesterov=False)
 
 # model = models.Sequential()
 # model.add(layers.Dense(16, input_shape=(126,126,3)))
@@ -142,24 +160,29 @@ model = tf.keras.Model(inputs=inputs, outputs=outputs)
 # model.add(layers.Dense(1, activation='relu'))
 
 # The loss function is 'mse', since it is regression
-optimizer = tf.keras.optimizers.Adam(lr=0.0001)
+#optimizer = tf.keras.optimizers.Adam(lr=0.0001)
 model.compile(
     optimizer=optimizer,
     loss='mse'
 )
 
+def exp_decay(epoch):
+    lrate = learning_rate * np.exp(-decay_rate*epoch)
+    return lrate
+
+
+
+# learning schedule callback
+lr_rate = LearningRateScheduler(exp_decay)
+
+#callbacks_list = [lr_rate]
+
 
 history = model.fit(
     train_images,
     validation_data=val_images,
-    epochs=10,
-    callbacks=[
-        tf.keras.callbacks.EarlyStopping(
-            monitor='val_loss',
-            patience=5,
-            restore_best_weights=True
-        )
-    ]
+    epochs=epochs,
+    #callbacks=callbacks_list
 )
 
 # # Results
