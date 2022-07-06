@@ -9,8 +9,8 @@ Created on Fri May 27 11:30:55 2022
 import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
-import seaborn as sns
-sns.set()  #if you want to use seaborn themes with matplotlib functions
+#import seaborn as sns
+#sns.set()  #if you want to use seaborn themes with matplotlib functions
 import warnings
 warnings.filterwarnings('ignore')
 
@@ -26,11 +26,16 @@ from PIL import Image
 import PIL 
 
 from scipy import signal
+#%%
 #df = pd.read_excel('/home/yasindu/Desktop/Soil_Spec/library_KS.xlsx')
-df = pd.read_csv('/home/yasindu/Desktop/Datasets/VNIR_spec.csv', low_memory=False)
+df = pd.read_csv('/home/yasindu/Desktop/Datasets/lucasSoil.csv', low_memory=False)
+
+#%%
 dfTeml = df
-df = df.drop(df.iloc[:, 0:34],axis = 1)
-df = df.drop(df.iloc[:, 1:8],axis = 1)
+df = df.drop(df.iloc[:, 0:4],axis = 1)
+df = df.drop(df.iloc[:, 4207:],axis = 1)
+df = df.drop(df.iloc[:, 4200:4207],axis = 1)
+#df = df.drop(df.iloc[:, 1:8],axis = 1)
 
 print("Readnig images - Done!")
 #%%
@@ -39,24 +44,24 @@ df2 = df
 val = 0
 
 #Remove outliers
-thresh = 2
-df3= df[df['EOC']<thresh]
-OC = df3['EOC'].tolist()
-df3 = df3.iloc[0:, 1:]
+# thresh = 2
+# df3= df[df['EOC']<thresh]
+# OC = df3['EOC'].tolist()
+# df3 = df3.iloc[0:, 1:]
 
 #create a list with spectral values without OC
-dataList = df3.values.tolist()
-dataArray = np.array(dataList[0])
+# dataList = df3.values.tolist()
+#dataArray = np.array(dataList[0])
 
 # Get spectrogram using Hann window
 # Then transform that spectrogram to log spectrogram
 
 
-
+dataList = df.values.tolist()
 
 data_list = []
 flatten_list = []
-for i in range(0, 1):
+for i in range(0, 5):
     dataArray = np.array(dataList[i])
     nperSeg = 100
     window = scipy.signal.get_window('hann', nperSeg)
